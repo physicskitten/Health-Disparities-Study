@@ -1,0 +1,41 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+#tooth extraction data
+file = pd.read_csv('children_tooth_extraction.csv')
+categories = file['LA Name']
+values1 = file['2011/12']
+values2 = file['2012/13']
+
+values1 = values1.fillna(0) #replace NaN values with 0% so that i can get rid of them later by interpreting them as integers
+values2 = values2.fillna(0)
+categories = categories.fillna('') #getting rid of the ugly 'nan' in my column where i have left gaps for differentiating London boroughs and UK districts
+
+values1 = values1.str.rstrip('%').astype('float') #converting percentage values to da numeric type, welcome to 'later'
+values2 = values2.str.rstrip('%').astype('float')
+
+width = 0.35
+offset = np.arange(len(categories)) #defining 'offset' so that my bars can be next to each other
+bar_colour1 = 'blue' #let's make them diff colours
+bar_colour2 = 'orange'
+
+fig, ax = plt.subplots()
+ax.bar(offset, values1, width, label='2011/12')
+ax.bar(offset + width, values2, width, label='2012/13') #this one is 'offset + width' so that they dont squish one another
+
+ax.set_xlabel('London Borough & UK Districts')
+ax.set_ylabel('Average Tooth Extractions in 0-19 Year Olds as a Precentage of Population(%)')
+ax.set_title('Average Precentage of Tooth Extractions in London Boroughs and UK Districts')
+ax.set_xticks(offset + width / 2)
+ax.set_xticklabels(categories, rotation=90) #rotating so that you can actually read the borough names and so it's not ugly
+ax.legend()
+
+ax.axhline(y=0.5, color='slategrey', linestyle='--', label='England Average')
+ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color='slategrey', linestyle='--'), plt.Rectangle((0, 0), 1, 1, color='blue')], labels=['England Average'])
+
+legend_handles = [plt.Rectangle((0, 0), 1, 1, color='blue'), plt.Rectangle((0, 0), 1, 1, color='orange'), plt.Line2D([0], [0], color='slategrey', linestyle='--')]
+legend_labels = ['2011/12', '2012/13', 'England Average']
+ax.legend(legend_handles, legend_labels)
+
+plt.tight_layout() #make it pretty
+plt.show() #et voila
