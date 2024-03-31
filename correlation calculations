@@ -1,0 +1,77 @@
+#correlation time!!! whooo!
+from scipy.stats import chi2_contingency
+
+tooth_data = pd.read_csv('children_tooth_extraction.csv')
+tooth_values1 = tooth_data['2011/12']
+tooth_values2 = tooth_data['2012/13']
+categories1 = tooth_data['LA Name']
+categories1 = categories1.fillna('')
+
+income_data = pd.read_csv('av_household_income_London.csv')
+income_values1 = income_data['2011/12']
+income_values2 = income_data['2012/13']
+categories2 = income_data['Borough']
+categories2 = categories2.fillna('')
+
+#since i can't use scipy pearsonr bc my data isnt continuous, i have to find an alternative method...
+
+#trying contingency tables??
+contingency_table_2011_12 = pd.crosstab(tooth_values1, income_values1)
+contingency_table_2012_13 = pd.crosstab(tooth_values2, income_values2)
+
+#whatever a "Chi-squared test" is? i don't understaaannnnddd
+chi2, p_value1, dof, expected = chi2_contingency(contingency_table_2011_12)
+chi2, p_value2, dof, expected = chi2_contingency(contingency_table_2012_13)
+
+#p-value
+print("The p-value between tooth extraction and average household income data for 2011/12 is:", p_value1)
+print("The p-value between tooth extraction and average household income data for 2012/13 is:", p_value2)
+print("Average p value for both 2011/12 and 2012/13 is:", (p_value1 + p_value2)/2 )
+
+#i look at my values and they dont seem right... imma try again an alternative way...
+
+#correlation time!!! whooo!
+from scipy.stats import spearmanr
+
+income_data = pd.read_csv('av_household_income_London.csv')
+tooth_data = pd.read_csv('children_tooth_extraction.csv')
+
+#extracting dataaaa
+income_values = (income_data['2011/12'].str.replace('£', '').str.replace(',', '').astype(float) + 
+                income_data['2012/13'].str.replace('£', '').str.replace(',', '').astype(float)) / 2
+tooth_values = (tooth_data['2011/12'].str.rstrip('%').astype(float) +
+                tooth_data['2012/13'].str.rstrip('%').astype(float)) / 2
+
+#remove icky things that make my life harder than it needs to be
+income_values = income_values.dropna()
+tooth_values = tooth_values.dropna()
+
+#remove even more things that overcomplicate for no apparent reason whatsoever :(
+min_len = min(len(income_values), len(tooth_values))
+income_values = income_values[:min_len]
+tooth_values = tooth_values[:min_len]
+
+#Spearman's rank correlation coefficient
+correlation, p_value = spearmanr(income_values, tooth_values)
+
+print("Spearman's rank correlation coefficient:", correlation)
+print("p-value:", p_value)
+
+x = income_values
+y = tooth_values
+
+#Fit a polynomial of degree 1 (a line) to the data points, make sure to check later how this works in the notes!!!
+m, q = np.polyfit(x, y, 1)
+
+#ma linear regression line~
+lin_reg = m * x + q
+
+#scatter graph!
+plt.scatter(x, y)
+plt.plot(x, lin_reg, color='red')
+
+plt.xlabel('Household Income')
+plt.ylabel('Tooth Extraction Data')
+plt.title('A Graph showing Average Household Income against Tooth Extractions in Children Aged 0-19 Years')
+
+plt.show()
