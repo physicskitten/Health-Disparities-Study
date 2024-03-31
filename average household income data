@@ -1,0 +1,81 @@
+#average household income
+
+import matplotlib.colors as mcolors
+
+file = pd.read_csv('av_household_income_London.csv')
+
+categories = file['Borough']
+values1 = file['2011/12']
+values2 = file['2012/13']
+
+values1 = values1.fillna(0)
+values2 = values2.fillna(0)
+categories = categories.fillna('')
+
+values1 = values1.str.replace('£', '').str.replace(',', '').astype(float)
+values2 = values2.str.replace('£', '').str.replace(',', '').astype(float)
+
+width = 0.35
+offset = np.arange(len(categories))
+
+fig, ax = plt.subplots()
+
+bar_color1 = mcolors.to_rgba('tab:green') #let's make them contrasting colours for easy comparison and ma colour blind people
+bar_color2 = mcolors.to_rgba('tab:pink')
+
+ax.bar(offset, values1, width, label='2011/12', color=bar_color1)
+ax.bar(offset + width, values2, width, label='2012/13', color=bar_color2)
+
+ax.set_xlabel('London Borough & UK Districts')
+ax.set_ylabel('Average Household Income (£)')
+ax.set_title('Average Household Income in London Boroughs and UK Districts')
+ax.set_xticks(offset + width / 2)
+ax.set_xticklabels(categories, rotation=90)
+ax.legend()
+
+#lets add some horizontal lines for pizazzz!!
+sorted_data1 = np.sort(values1.dropna())
+sorted_data2 = np.sort(values2.dropna())
+
+Q1_1 = np.percentile(sorted_data1, 25)
+Q1_2 = np.percentile(sorted_data2, 25)
+
+Q2_1 = np.percentile(sorted_data1, 50)
+Q2_2 = np.percentile(sorted_data2, 50)
+
+Q3_1 = np.percentile(sorted_data1, 75)
+Q3_2 = np.percentile(sorted_data2, 75)
+
+IQR_1 = Q3_1 - Q1_1
+IQR_2 = Q3_2 - Q1_2
+
+print("First Quartile (Q1 for 2011/12):", Q1_1)
+print("Third Quartile (Q3 for 2011/12):", Q3_1)
+print("Interquartile Range (IQR for 2011/12):", IQR_1)
+
+print("\n")
+print("First Quartile (Q1 for 2012/13):", Q1_2)
+print("Third Quartile (Q3 for 2012/13):", Q3_2)
+print("Interquartile Range (IQR for 2012/13):", IQR_2)
+
+total_Q1 = (Q1_1 + Q1_2) / 2
+total_Q2 = (Q2_1 + Q2_2) / 2
+total_Q3 = (Q3_1 + Q3_2) / 2
+#print("\n", total_Q1, total_Q2, total_Q3)
+
+#color-blind-friendly colors for the horizontal legend lines
+line_colors = [mcolors.to_rgba('tab:blue'), mcolors.to_rgba('tab:olive'), mcolors.to_rgba('tab:brown')]
+
+
+legend_handles = [plt.Rectangle((0, 0), 1, 1, color=bar_color1),
+                  plt.Rectangle((0, 0), 1, 1, color=bar_color2),
+                  plt.Line2D([0], [0], color=line_colors[0], linestyle='--'),
+                  plt.Line2D([0], [0], color=line_colors[1], linestyle='--'),
+                  plt.Line2D([0], [0], color=line_colors[2], linestyle='--')]
+legend_labels = ['2011/12', '2012/13', 'Q1', 'Median', 'Q3']
+
+#makin the colours match in the legend and on the graph
+total_Q1_line = ax.axhline(y=total_Q1, color=line_colors[0], linestyle='--', label='Total Q1')
+total_Q2_line = ax.axhline(y=total_Q2, color=line_colors[1], linestyle='--', label='Median')
+total_Q3_line = ax.axhline(y=total_Q3, color=line_colors[2], linestyle='--', label='Total Q3')
+ax.legend(legend_handles, legend_labels)
